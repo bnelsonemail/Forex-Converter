@@ -74,9 +74,11 @@ def conversion():
         
                 # Make the API request to exchangerate.host
         url = "https://api.exchangerate.host/live"
+        access_key = os.getenv('ACCESS_KEY')
         params = {
             'base': from_currency,
-            'symbols': to_currency
+            'symbols': to_currency,
+            'access_key': access_key,
         }
         response = requests.get(url, params=params)  # This line defines `response`
         
@@ -91,7 +93,7 @@ def conversion():
         # Check if the request was successful and parse JSON
         if response.status_code == 200:
             data = response.json()
-            exchange_rate = data.get('end_rate', {}).get(to_currency)
+            exchange_rate = data.get('rates', {}).get(to_currency)
             if not exchange_rate:
                 raise ValueError(f"Could not find exchange rate for {to_currency}.")
         
