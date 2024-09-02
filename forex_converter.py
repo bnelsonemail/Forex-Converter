@@ -40,7 +40,7 @@ class CurrencyConverter:
         response = requests.get(url, params=params)
         data = response.json()
         
-        exchange_rate = data['rates'].get(to_currency)
+        exchange_rate = data['end_rate'].get(to_currency)
         if exchange_rate:
             return exchange_rate
         else:
