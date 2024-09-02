@@ -60,8 +60,11 @@ def conversion():
         
         # Redirect to /convert to display the results
         return redirect('/convert')
+    except ValueError as e:
+        # Handle invalid currency codes or other conversion errors
+        return render_template('home.html', error=str(e)), 400
     except Exception as e:
-        # Handle errors and display them on the error page
+        # Handle other errors and display them on the error page
         return render_template('error.html', error=str(e)), 500
 
 if __name__ == "__main__":

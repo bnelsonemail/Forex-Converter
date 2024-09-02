@@ -12,7 +12,23 @@ class CurrencyConverter:
         """Initializes the CurrencyConverter with an API access key and base URL."""
         self.access_key = os.getenv('ACCESS_KEY')
         self.base_url = 'https://api.exchangerate.host/'
-        
+        self.valid_currency_codes = CurrencyCodes().get_currency_name
+    
+    def validate_currency_code(self, currency_code: str) -> bool:
+        """
+        Validates the given currency code.
+
+        Args:
+            currency_code (str): The currency code to validate.
+
+        Returns:
+            bool: True if the currency code is valid, False otherwise.
+        """
+        if self.valid_currency_codes(currency_code.upper()):
+            return True
+        else:
+            return False
+
     def get_exchange_rate(self, from_currency: str, to_currency: str, endpoint: str = 'live') -> tuple:
         """
         Fetches the exchange rate for the specified currencies using a specified endpoint.
@@ -28,6 +44,12 @@ class CurrencyConverter:
         Raises:
             ValueError: If the exchange rate could not be retrieved from the API.
         """
+        # Validate the currency codes
+        if not self.validate_currency_code(from_currency):
+            raise ValueError(f"Invalid currency code: {from_currency}")
+        if not self.validate_currency_code(to_currency):
+            raise ValueError(f"Invalid currency code: {to_currency}")
+
         url = f'{self.base_url}/{endpoint}'
         params = {
             'base': from_currency,
@@ -70,6 +92,4 @@ class CurrencyConverter:
         exchange_rate, as_of_date = self.get_exchange_rate(from_currency, to_currency)
         converted_amount = amount * exchange_rate
         return converted_amount, as_of_date
-
-    
 
