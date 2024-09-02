@@ -1,19 +1,31 @@
-{% extends "base.html" %}
-{% block title %}Forex Conversion Page{% endblock title %}
+{% extends "base.html" %} {% block title %}Forex Conversion Page{% endblock
+title %} {% block content %}
 
-{% block content %}
-
-
-<div class="mt-8">
-    <img src="/static/images/bitcoin_circuit_640.jpg" alt="Bitcoin on a circuit board" class="mx-auto">
+<div class="text-center w-full max-w-lg mx-auto">
+  <h1 class="text-4xl font-bold text-black">
+    Forex Currency Converter Results
+  </h1>
 </div>
 
-{% if result %}
-<h2 class="text-3xl font-bold text-black">Conversion Result:</h2>
-<h3 class="text-2xl font-bold text-black">{{ result }}</h3>
-{% endif %}
+<div class="mt-8">
+  <img
+    src="/static/images/bitcoin_circuit_640.jpg"
+    alt="Bitcoin on a circuit board"
+    class="mx-auto mb-8"
+  />
+</div>
 
-
-
+<div class="flex flex-col items-center bg-gray-400">
+  {% if converted_amount %}
+  <h2 class="text-3xl font-bold text-black">Conversion Result:</h2>
+  <h3 class="text-2xl font-bold text-black">
+    {{ amount }} {{ from_currency.upper() }} is equal to {{ converted_amount }}
+    {{ to_currency.upper() }}.
+  </h3>
+  <h3 class="text-2xl font-bold text-black">As of {{ as_of_date }}</h3>
+  {% else %}
+  <h3 class="text-2xl font-bold text-black">No conversion data available.</h3>
+  {% endif %}
+</div>
 
 {% endblock content %}
