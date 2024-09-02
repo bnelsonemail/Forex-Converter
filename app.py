@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, json, jsonify, redirect
 from flask_debugtoolbar import DebugToolbarExtension
 from config import logger, DevelopmentConfig # or ProductionConfig, TestingConfig
 from dotenv import load_dotenv, find_dotenv
-#from forex_converter import forex_BTC
+from forex_converter import CurrencyConverter # Import the CurrencyConverter Class
 import requests
 import os
 
@@ -18,9 +18,15 @@ app.config.from_object(DevelopmentConfig)
 # app.config['DEBUG'] = 'DEBUG_TB_INTERCEPT_REDIRECTS = True'
 debug = DebugToolbarExtension(app)
 
+# Create an instance of the CurrencyConverter
+converter = CurrencyConverter()
+
 @app.route('/') # Home Page
 def home():
-    """Renders Home Page with a form for user input to convert currency rates"""
+    """
+    Renders the home page with the currency conversion form. 
+    Handles form submission to calculate and display the converted currency amount.
+    """
     return render_template ('home.html')
 
 
@@ -38,45 +44,34 @@ def convert():
 
 @app.route('/conversion', methods=['GET', 'POST'])
 def conversion():
-    """Calls the API and returns values. Redirects to convert.html"""
-
+    """
+    Handles form submission from the home page, calls the CurrencyConverter 
+    class to get the exchange rate, and calculates the converted amount.
+    Redirects to convert.html to display the results.
+    """
+    # Retrieve values from home.html form
+    from_currency = request.form.get('from_curr') 
+    to_currency = request.form.get('to_curr')
+    amount = float(request.form.get('amount'))
     
+    try:
+        # Get the exchange rate using the CurrencyConverter class
+        exchange_rate = converter.get_exchange_rate(from_currency, to_currency)
+        
+        # Convert the amount to the target currency
+        converted_amount = converter.convert_currency(amount, exchange_rate)
+        
+        # Pass the converted amount and other details to the template
+        return render_template('convert.html', 
+                               from_currency=from_currency,
+                               to_currency=to_currency,
+                               amount=amount,
+                               converted_amount=converted_amount)
+    except Exception as e:
+        # Handle errors (e.g., invalid currencies or API errors)
+        return f'Error: {str(e)}'
         
     
-    # Get the access key from the .env file
-    access_key = os.getenv('ACCESS_KEY')
-
-    # Define the URL and parameters
-    url = 'https://api.exchangerate.host/live'
-    params = {
-        'access_key': access_key
-    }
-
-    # Make the GET request to the API
-    response = requests.get(url, params=params)
-
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Parse the JSON response
-        data = response.json()
-        
-        # Process the data from user
-        # Retrieve values from home.html form
-        from_currency = request.form.get('from_curr') 
-        to_currency = request.form.get('to_curr')
-        amount = request.form.get('amount') 
-    
-        # TODO: perform calculation from forex_converter.py script
-        
-        
-        # redirect to convert.html
-        return render_template('convert.html', data=data)
-    else:
-        # Handle the error
-        return f"Error: {response.status_code}"
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=True)
