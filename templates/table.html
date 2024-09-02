@@ -1,0 +1,18 @@
+{% extends "base.html" %} {% block title %}Currency Table{% endblock title %}
+
+{% block content %}
+<div class="flex flex-col items-center h-screen bg-gray-400">
+  <h1 class="text-4xl font-bold text-black pt-8">Currency Tables Page</h1>
+  <h2 class="text-2xl font-bold text-black pt-8">
+    For Country Currency Codes, click on the below link.
+</h2><br>
+<a href="https://www.iban.com/currency-codes" target="_blank" rel="noopener noreferrer" class="text-2xl text-blue-500 hover:text-red-500 font-bold underline transition-colors duration-300 ease-in-out">
+    Country Currency Codes
+</a>
+<div class="mt-8">
+    <img src="/static/images/piggy_bank_640.jpg" alt="ai generated boy with piggy bank" class="mx-auto">
+</div>
+
+</div>
+
+{% endblock content %}
