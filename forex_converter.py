@@ -1,5 +1,5 @@
-from forex_python.converter import CurrencyCodes, CurrencyRates 
-from datetime import date, datetime
+from forex_python.converter import CurrencyCodes
+from datetime import datetime
 import os
 import requests
 from dotenv import load_dotenv, find_dotenv
@@ -13,6 +13,7 @@ class CurrencyConverter:
         self.access_key = os.getenv('ACCESS_KEY')
         self.base_url = 'https://api.exchangerate.host/'
         self.valid_currency_codes = CurrencyCodes().get_currency_name
+        self.symbols = CurrencyCodes().get_symbol
     
     def validate_currency_code(self, currency_code: str) -> bool:
         """
@@ -29,6 +30,32 @@ class CurrencyConverter:
         else:
             return False
 
+    def get_symbols(self, from_currency: str, to_currency: str) -> str:
+        """
+        Fetches the symbols for the given currency codes.
+
+        Args:
+            from_currency (str): The origin currency code.
+            to_currency (str): The desired currency code.
+
+        Returns:
+            tuple: A tuple containing the symbols of the origin and target currencies.
+        """
+        # Validate both currency codes
+        if not self.validate_currency_code(from_currency):
+            raise ValueError(f"Invalid currency code: {from_currency}")
+        
+        if not self.validate_currency_code(to_currency):
+            raise ValueError(f"Invalid currency code: {to_currency}")
+
+        # Fetch the symbols
+        from_symbol = self.currency_codes.get_symbol(from_currency.upper())
+        to_symbol = self.currency_codes.get_symbol(to_currency.upper())
+        
+        return from_symbol, to_symbol
+            
+    
+    
     def get_exchange_rate(self, from_currency: str, to_currency: str, endpoint: str = 'live') -> tuple:
         """
         Fetches the exchange rate for the specified currencies using a specified endpoint.
@@ -63,7 +90,7 @@ class CurrencyConverter:
             parse_currency = (from_currency + to_currency).upper()
             exchange_rate = data['quotes'].get(parse_currency)
             timestamp = data.get('timestamp')
-            
+                        
             if exchange_rate:
                 # Round to 2 decimal places
                 exchange_rate = round(exchange_rate, 2)
@@ -92,4 +119,5 @@ class CurrencyConverter:
         exchange_rate, as_of_date = self.get_exchange_rate(from_currency, to_currency)
         converted_amount = amount * exchange_rate
         return converted_amount, as_of_date
+
 

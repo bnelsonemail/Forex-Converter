@@ -2,10 +2,11 @@ from flask import Flask, render_template, request, redirect, session
 from flask_debugtoolbar import DebugToolbarExtension
 from config import DevelopmentConfig
 from dotenv import load_dotenv, find_dotenv
+from forex_python.converter import CurrencyCodes
 from forex_converter import CurrencyConverter
 import os
 
-# load environment variables from the .env file
+# Load environment variables from the .env file
 load_dotenv(find_dotenv())
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ debug = DebugToolbarExtension(app)
 
 # Create an instance of the CurrencyConverter
 converter = CurrencyConverter()
+c = CurrencyCodes()
 
 @app.route('/')
 def home():
@@ -36,15 +38,20 @@ def convert():
                                to_currency=session['to_currency'],
                                amount=session['amount'],
                                converted_amount=session['converted_amount'],
-                               as_of_date=session['as_of_date'])
+                               as_of_date=session['as_of_date'],
+                               from_symbol=session['from_symbol'],
+                               to_symbol=session['to_symbol'])  # Fixed indentation
+
     else:
         return redirect('/')
 
 @app.route('/conversion', methods=['POST'])
 def conversion():
     """Handles form submission, calls the CurrencyConverter to get the exchange rate, and redirects to /convert."""
-    from_currency = request.form.get('from_curr').upper()
+    from_currency = request.form.get('from_curr').upper()  # Moved above
     to_currency = request.form.get('to_curr').upper()
+    from_symbol = c.get_symbol(from_currency)  # Symbols retrieved after currency extraction
+    to_symbol = c.get_symbol(to_currency)
     amount = float(request.form.get('amount'))
     
     try:
@@ -57,6 +64,8 @@ def conversion():
         session['amount'] = amount
         session['converted_amount'] = converted_amount
         session['as_of_date'] = as_of_date
+        session['from_symbol'] = from_symbol
+        session['to_symbol'] = to_symbol
         
         # Redirect to /convert to display the results
         return redirect('/convert')
@@ -69,4 +78,5 @@ def conversion():
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=True)
+
         
