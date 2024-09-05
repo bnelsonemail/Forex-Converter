@@ -24,7 +24,7 @@ class FlaskAppTests(unittest.TestCase):
         """Test that the /convert route redirects if no data is in the session."""
         response = self.app.get('/convert', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Convert', response.data) # Check redirection back to the home form
+        self.assertIn(b'Forex Currency Converter', response.data) # Check redirection back to the home form
         
 if __name__ == '__main__':
     unittest.main()

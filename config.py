@@ -31,6 +31,7 @@ class TestingConfig(Config):
     TESTING = True
     FLASK_ENV = 'testing'
     DEBUG_TB_HOSTS = 'dont-show-debug-toolbar'
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
     
 
 

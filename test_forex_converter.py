@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock
 from forex_converter import CurrencyConverter
+from datetime import datetime
 
 class CurrencyConverterTests(unittest.TestCase):
     
@@ -9,14 +10,14 @@ class CurrencyConverterTests(unittest.TestCase):
         
     @patch('forex_converter.requests.get')
     def test_get_exchange_rate(self, mock_get):
-        """Test fetching exchange rate for balid currency codes."""
+        """Test fetching exchange rate for valid currency codes."""
         
-        # Create a mock response object with sample exchange rate data
+        # Mock response data to match the structure of the actual API response
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            'info': {'quotes': 1.2},
-            'date': '2023-01-01'
+            'quotes': {'USDEUR': 1.2},  # Correct format for exchange rate
+            'timestamp': 1672531200     # Example Unix timestamp (e.g., 2023-01-01)
         }
         
         # Mock the requests.get call to return the mock response
@@ -25,9 +26,12 @@ class CurrencyConverterTests(unittest.TestCase):
         # Call the method being tested
         exchange_rate, as_of_date = self.converter.get_exchange_rate('USD', 'EUR')
         
+        # Convert the Unix timestamp into the expected date format for comparison
+        expected_date = datetime.fromtimestamp(1672531200).strftime('%Y-%m-%d')
+        
         # Assert that the exchange rate and date were returned correctly
         self.assertEqual(exchange_rate, 1.2)
-        self.assertEqual(as_of_date, '2023-01-01')
+        self.assertEqual(as_of_date, expected_date)
     
     def test_validate_currency_code(self):
         """Test validating a valid and invalid currency code."""
