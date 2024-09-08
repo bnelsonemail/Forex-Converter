@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_debugtoolbar import DebugToolbarExtension
-from config import TestingConfig # Use DevelopmentConfig, TestingConfig or ProductionConfig
+from config import DevelopmentConfig # Use DevelopmentConfig, TestingConfig or ProductionConfig
 from dotenv import load_dotenv, find_dotenv
 from forex_python.converter import CurrencyCodes
 from forex_converter import CurrencyConverter
@@ -12,7 +12,7 @@ load_dotenv(find_dotenv())
 app = Flask(__name__)
 
 # Call config files
-app.config.from_object(TestingConfig) # Use DevelopmentConfig, TestingConfig or ProductionConfig
+app.config.from_object(DevelopmentConfig) # Use DevelopmentConfig, TestingConfig or ProductionConfig
 from dotenv import load_dotenv, find_dotenv
 debug = DebugToolbarExtension(app)
 

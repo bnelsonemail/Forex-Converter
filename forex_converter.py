@@ -7,117 +7,87 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class CurrencyConverter:
-    """A class to handle currency conversion by fetching exchange rates from an external API."""
+    """
+    A class to handle currency conversion by fetching exchange rates from an external API.
+
+    This class uses the CurrencyAPI to retrieve the latest exchange rates between different
+    currencies. It can validate currency codes, fetch exchange rates, convert amounts between
+    currencies, and retrieve currency symbols.
+    """
     def __init__(self):
-        """Initializes the CurrencyConverter with an API access key and base URL."""
-        self.access_key = os.getenv('ACCESS_KEY')
-        self.base_url = 'https://api.exchangerate.host/'
+        """
+        Initializes the CurrencyConverter with an API access key and base URL.
+        """
+        self.apikey = os.getenv('APIKEY')
+        self.base_url = 'https://api.currencyapi.com/v3/latest'
         self.valid_currency_codes = CurrencyCodes().get_currency_name
         self.symbols = CurrencyCodes().get_symbol
     
     def validate_currency_code(self, currency_code: str) -> bool:
         """
         Validates the given currency code.
-
-        Args:
-            currency_code (str): The currency code to validate.
-
-        Returns:
-            bool: True if the currency code is valid, False otherwise.
         """
-        if self.valid_currency_codes(currency_code.upper()):
-            return True
-        else:
-            return False
+        return bool(self.valid_currency_codes(currency_code.upper()))
 
-    def get_symbols(self, from_currency: str, to_currency: str) -> str:
+    def get_symbols(self, from_currency: str, to_currency: str) -> tuple:
         """
-        Fetches the symbols for the given currency codes.
-
-        Args:
-            from_currency (str): The origin currency code.
-            to_currency (str): The desired currency code.
-
-        Returns:
-            tuple: A tuple containing the symbols of the origin and target currencies.
+        Fetches the currency symbols for the given currency codes.
         """
-        # Validate both currency codes
         if not self.validate_currency_code(from_currency):
             raise ValueError(f"Invalid currency code: {from_currency}")
         
         if not self.validate_currency_code(to_currency):
             raise ValueError(f"Invalid currency code: {to_currency}")
 
-        # Fetch the symbols
-        from_symbol = self.currency_codes.get_symbol(from_currency.upper())
-        to_symbol = self.currency_codes.get_symbol(to_currency.upper())
+        from_symbol = self.symbols(from_currency.upper())
+        to_symbol = self.symbols(to_currency.upper())
         
         return from_symbol, to_symbol
-            
-    
-    
-    def get_exchange_rate(self, from_currency: str, to_currency: str, endpoint: str = 'live') -> tuple:
-        """
-        Fetches the exchange rate for the specified currencies using a specified endpoint.
 
-        Args:
-            from_currency (str): The currency to convert from (e.g., 'USD')
-            to_currency (str): The currency to convert to (e.g., 'EUR')
-            endpoint (str): The API endpoint to use (e.g., 'live'). Defaults to 'live'.
-
-        Returns:
-            tuple: A tuple containing the exchange rate (rounded to two decimal places) and the "as of" date.
-        
-        Raises:
-            ValueError: If the exchange rate could not be retrieved from the API.
+    def get_exchange_rate(self, from_currency: str, to_currency: str, endpoint: str = 'latest') -> tuple:
         """
-        # Validate the currency codes
+        Fetches the exchange rate for the specified currency pair.
+        """
         if not self.validate_currency_code(from_currency):
             raise ValueError(f"Invalid currency code: {from_currency}")
         if not self.validate_currency_code(to_currency):
             raise ValueError(f"Invalid currency code: {to_currency}")
 
-        url = f'{self.base_url}/{endpoint}'
-        params = {
-            'base': from_currency,
-            'symbols': to_currency,
-            'access_key': self.access_key,
+        url = f'{self.base_url}'
+        querystring = {
+            'base_currency': from_currency,
+            'currencies': to_currency,
+            'apikey': self.apikey,
         }
-        
-        response = requests.get(url, params=params)
+
+        response = requests.get(url, params=querystring)
         if response.status_code == 200:
             data = response.json()
-            parse_currency = (from_currency + to_currency).upper()
-            exchange_rate = data['quotes'].get(parse_currency)
-            timestamp = data.get('timestamp')
-                        
-            if exchange_rate:
-                # Round to 2 decimal places
-                exchange_rate = round(exchange_rate, 2)
-                
-                # Convert the timestamp to a readable date
-                as_of_date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
-                
+
+            if 'data' in data and to_currency in data['data']:
+                exchange_rate = data['data'][to_currency]['value']
+                last_updated_at = data['data'][to_currency].get('last_updated_at')
+
+                # Convert ISO 8601 date to a human-readable format
+                if last_updated_at:
+                    as_of_date = datetime.fromisoformat(last_updated_at).strftime('%Y-%m-%d')
+                else:
+                    as_of_date = datetime.now().strftime('%Y-%m-%d')
+
                 return exchange_rate, as_of_date
             else:
-                raise ValueError(f'Could not find exchange rate for {parse_currency}. Full data: {data}')
+                raise ValueError(f'Could not find exchange rate for {from_currency} to {to_currency}. Full data: {data}')
         else:
             raise ValueError(f"API request failed with status code: {response.status_code}")
 
     def convert_currency(self, amount: float, from_currency: str, to_currency: str) -> tuple:
         """
-        Converts the specified amount from one currency to another.
-
-        Args:
-            amount (float): The amount of money to convert.
-            from_currency (str): The currency to convert from.
-            to_currency (str): The currency to convert to.
-
-        Returns:
-            tuple: A tuple containing the converted amount and the "as of" date.
+        Converts the specified amount from one currency to another using the latest exchange rate.
         """
         exchange_rate, as_of_date = self.get_exchange_rate(from_currency, to_currency)
         converted_amount = amount * exchange_rate
         return converted_amount, as_of_date
+
+
 
 
