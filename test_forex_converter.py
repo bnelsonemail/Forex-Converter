@@ -16,8 +16,12 @@ class CurrencyConverterTests(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            'quotes': {'USDEUR': 1.2},  # Correct format for exchange rate
-            'timestamp': 1672531200     # Example Unix timestamp (e.g., 2023-01-01)
+            'data': {
+                'EUR': {
+                    'value': 1.2,
+                    'last_updated_at': '2023-01-01T00:00:00Z'  # ISO 8601 format
+                }
+            }
         }
         
         # Mock the requests.get call to return the mock response
@@ -26,8 +30,8 @@ class CurrencyConverterTests(unittest.TestCase):
         # Call the method being tested
         exchange_rate, as_of_date = self.converter.get_exchange_rate('USD', 'EUR')
         
-        # Convert the Unix timestamp into the expected date format for comparison
-        expected_date = datetime.fromtimestamp(1672531200).strftime('%Y-%m-%d')
+        # Expected date is the same as in the mock response
+        expected_date = '2023-01-01'
         
         # Assert that the exchange rate and date were returned correctly
         self.assertEqual(exchange_rate, 1.2)
@@ -53,4 +57,5 @@ class CurrencyConverterTests(unittest.TestCase):
         self.assertEqual(as_of_date, '2023-01-01')
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()
+     
